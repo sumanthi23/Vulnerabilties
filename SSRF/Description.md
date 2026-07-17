@@ -27,6 +27,13 @@ why applications trust requests from localhost
   it whcih leads to ssrf
 
 what actually is leading to the ssrf 
-* when a website is actually made then u will be able to access the website with the only 1 ip addr
-  and then other interanal
+* Large applications use multiple servers but only the shopping website is exposed on the internet
+  and this is connected to the other internal servers and which are nto directly accessed by the
+  users so the developers think that as it is not accessible by the users directly so weaken the
+  authentication and sensitive data leaved in this way as it leads ssrf
+
+
+In this type of SSRF, the attacker makes the vulnerable server send requests to other internal back-end
+systems instead of localhost. These systems usually have private IP addresses and are not directly accessible from the internet. Since developers often rely on the network for protection, these internal services may haveweaker security or no authentication. The vulnerable server can reach them, retrieve sensitive information, and return it to the attacker.
   
+* 
