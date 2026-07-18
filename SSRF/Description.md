@@ -76,4 +76,5 @@ Blind SSRF
   when it comes to blind no response is shown this is harder to exploit but sometimes leads to rce
 * impact of blind is lesser compared to the informed ssrf as they are one way nature to exploit
   How to find blind ssrf vulnerabilities
+* generally for the blind ssrf or anything they just generally use Out-of-Band(OAST) techniques
 
