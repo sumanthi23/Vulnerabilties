@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Orders</h1>
+<p class="lede">Recent orders across all storefronts.</p>
+
+<div class="card">
+  <table>
+    <tr><th>Order</th><th>Customer</th><th>Total</th><th>Status</th></tr>
+    <tr><td>#48291</td><td>J. Alvarez</td><td>$142.00</td><td>Shipped</td></tr>
+    <tr><td>#48290</td><td>R. Kim</td><td>$58.50</td><td>Processing</td></tr>
+    <tr><td>#48289</td><td>M. Diallo</td><td>$310.20</td><td>Shipped</td></tr>
+    <tr><td>#48288</td><td>S. Novak</td><td>$76.00</td><td>Delivered</td></tr>
+    <tr><td>#48287</td><td>T. Ibrahim</td><td>$22.99</td><td>Delivered</td></tr>
+  </table>
+</div>
+{% endblock %}

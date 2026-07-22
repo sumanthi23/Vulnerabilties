@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Product Images</h1>
+<p class="lede">Add a product thumbnail by pasting an image URL — the catalog service fetches
+it and stores a copy so vendor pages don't need to host their own assets.</p>
+
+<div class="grid">
+  <div class="card">
+    <h2>Catalog</h2>
+    <table>
+      <tr><th></th><th>Product</th><th>SKU</th></tr>
+      <tr><td><span class="thumb"></span></td><td>Trail Runner Jacket</td><td>SS-2291</td></tr>
+      <tr><td><span class="thumb"></span></td><td>Insulated Bottle 750ml</td><td>SS-1042</td></tr>
+      <tr><td><span class="thumb"></span></td><td>Camp Lantern Mk II</td><td>SS-3387</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>Import product image</h2>
+    <form method="get" action="/import-image">
+      <label for="url">Image URL</label>
+      <input type="text" id="url" name="url" value="{{ submitted_url or '' }}"
+             placeholder="https://vendor-cdn.example.com/photos/lantern.jpg" autocomplete="off">
+      <div class="field-hint">Only URLs hosted on our approved CDN can be imported.</div>
+      <button>Fetch &amp; preview</button>
+    </form>
+    <div class="preview {{ 'flagged' if flagged else 'empty' if not result else '' }}">{{ result or "no image fetched yet" }}</div>
+  </div>
+</div>
+{% endblock %}

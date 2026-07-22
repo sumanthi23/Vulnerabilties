@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ title or "ShopStock Admin" }}</title>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <div class="topbar">
+    <div class="brand"><span class="brand-mark"></span> ShopStock</div>
+    <nav class="topnav">
+      <a href="/" class="{{ 'active' if active == 'catalog' else '' }}">Catalog</a>
+      <a href="/orders" class="{{ 'active' if active == 'orders' else '' }}">Orders</a>
+      <a href="/vendors" class="{{ 'active' if active == 'vendors' else '' }}">Vendors</a>
+      <a href="/settings" class="{{ 'active' if active == 'settings' else '' }}">Settings</a>
+    </nav>
+    <div class="user-pill"><span class="dot"></span> ops-team · internal build</div>
+  </div>
+
+  <div class="wrap">
+    {% block content %}{% endblock %}
+  </div>
+</body>
+</html>

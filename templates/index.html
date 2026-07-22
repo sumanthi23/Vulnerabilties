@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ShopStock — Catalog Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <div class="topbar">
+    <div class="brand"><span class="brand-mark"></span> ShopStock</div>
+    <div class="crumbs">Catalog / <b>Product Images</b></div>
+    <div class="user-pill"><span class="dot"></span> ops-team · internal build</div>
+  </div>
+
+  <div class="wrap">
+    <h1>Product Images</h1>
+    <p class="lede">Add a product thumbnail by pasting an image URL — the catalog service fetches
+    it and stores a copy so vendor pages don't need to host their own assets.</p>
+
+    <div class="card guide">
+      <h2>Learning guide</h2>
+      <p class="guide-intro">This app has two SSRF-vulnerable features, each modeling something you'll
+      actually run into hunting for real bugs: a filtered fetch (most real targets have <em>some</em>
+      check) and a blind fetch (most real bugs don't hand you a response body). Three objectives.</p>
+
+      <div class="objective {{ 'done' if flag1 else '' }}">
+        <span class="obj-marker">{{ '✓' if flag1 else '1' }}</span>
+        <div>
+          <div class="obj-title">Bypass the whitelist, reach the internal admin panel</div>
+          <div class="obj-desc">The import feature only accepts URLs containing
+          <code>cdn.shopstock.local</code>. That check runs against the raw string, not the parsed
+          host — the same class of bug behind real whitelist-bypass reports on HackerOne/Bugcrowd.</div>
+          <details>
+            <summary>Hint 1</summary>
+            <p>The filter checks whether the trusted string appears <em>anywhere</em> in the URL. A
+            URL can contain a hostname without the request actually going there.</p>
+          </details>
+          <details>
+            <summary>Hint 2 (userinfo trick)</summary>
+            <p>Try:<br><code>http://cdn.shopstock.local@127.0.0.1:5001/admin/secret</code><br>
+            Everything before <code>@</code> is userinfo, not the host — browsers and HTTP clients
+            ignore it for routing, but a naive string check doesn't know that.</p>
+          </details>
+          <details>
+            <summary>Hint 3 (fragment trick)</summary>
+            <p>Also works:<br><code>http://127.0.0.1:5001/admin/secret#cdn.shopstock.local</code><br>
+            Everything after <code>#</code> is a fragment — never even sent to the server — but it's
+            still part of the string the filter sees.</p>
+          </details>
+        </div>
+      </div>
+
+      <div class="objective {{ 'done' if flag2 else '' }}">
+        <span class="obj-marker">{{ '✓' if flag2 else '2' }}</span>
+        <div>
+          <div class="obj-title">Steal cloud credentials and watch them get reused</div>
+          <div class="obj-desc">Same bypass, different destination: the fake cloud metadata endpoint.
+          This is the pattern behind the 2019 Capital One breach and CVE-2025-53767 (Azure OpenAI).</div>
+          <details>
+            <summary>Hint 1 (payload)</summary>
+            <p>Try:<br><code>http://cdn.shopstock.local@127.0.0.1:5001/latest/meta-data/iam/security-credentials/ISRM-WAF-Role</code></p>
+          </details>
+          <details>
+            <summary>Hint 2 (what to expect)</summary>
+            <p>You'll see an access key + secret key, then a second block showing customer records —
+            this app automatically replaying the stolen credentials against a separate service.</p>
+          </details>
+        </div>
+      </div>
+
+      <div class="objective {{ 'done' if flag3 else '' }}">
+        <span class="obj-marker">{{ '✓' if flag3 else '3' }}</span>
+        <div>
+          <div class="obj-title">Blind SSRF: port-scan the internal network by timing</div>
+          <div class="obj-desc">The webhook tester below (no whitelist at all) never shows you a
+          response — only whether the request succeeded and how long it took. That's still enough
+          to map what's alive internally, a real technique used when a target's SSRF is blind.</div>
+          <details>
+            <summary>Hint 1</summary>
+            <p>Try the webhook tester against <code>http://127.0.0.1:5001/</code> (open — the internal
+            service) and then against <code>http://127.0.0.1:5999/</code> (closed). Compare the result
+            and timing.</p>
+          </details>
+          <details>
+            <summary>Hint 2</summary>
+            <p>An open port that isn't listening HTTP still often responds instantly with "connection
+            refused" while a closed/filtered one hangs to your timeout. Fast rejection vs. a
+            timeout is the signal — you're mapping the network without ever reading a response body.</p>
+          </details>
+        </div>
+      </div>
+    </div>
+
+    {% if flag1 or flag2 or flag3 %}
+    <div class="notice success">
+      <div>
+        <b>
+        {% if flag2 %}Objective 2 complete — full chain reached.
+        {% elif flag1 %}Objective 1 complete — whitelist bypassed.
+        {% endif %}
+        {% if flag3 %}{{ ' Objective 3 complete — blind port scan confirmed.' if (flag1 or flag2) else 'Objective 3 complete — blind port scan confirmed.' }}{% endif %}
+        </b>
+        <div style="margin-top:4px;">
+          {% if flag2 %}
+          The import feature fetched a metadata URL through the bypassed whitelist, got back
+          credentials, and this app replayed those credentials against a second service on its own —
+          the same shape as the Capital One breach.
+          {% elif flag1 %}
+          The <code>@</code>/<code>#</code> trick got past the string check even though the request
+          never actually went to the trusted host. Try objective 2 next with the same trick.
+          {% endif %}
+          {% if flag3 %}
+          Timing alone was enough to tell an open internal port from a closed one — no response body
+          required. This is exactly how blind SSRF gets exploited on real, unforgiving targets.
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <div class="grid">
+      <div class="card">
+        <h2>Catalog</h2>
+        <table>
+          <tr><th></th><th>Product</th><th>SKU</th></tr>
+          <tr><td><span class="thumb"></span></td><td>Trail Runner Jacket</td><td>SS-2291</td></tr>
+          <tr><td><span class="thumb"></span></td><td>Insulated Bottle 750ml</td><td>SS-1042</td></tr>
+          <tr><td><span class="thumb"></span></td><td>Camp Lantern Mk II</td><td>SS-3387</td></tr>
+        </table>
+      </div>
+
+      <div class="card">
+        <h2>Import product image</h2>
+        <form method="get" action="/import-image">
+          <label for="url">Image URL</label>
+          <input type="text" id="url" name="url" value="{{ submitted_url or '' }}"
+                 placeholder="http://cdn.shopstock.local@..." autocomplete="off">
+          <div class="field-hint">Only URLs containing <code>cdn.shopstock.local</code> are allowed.</div>
+          <button>Fetch &amp; preview</button>
+        </form>
+        <div class="preview {{ 'flagged' if flagged else 'empty' if not result else '' }}">{{ result or "no image fetched yet" }}</div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:24px;">
+      <h2>Webhook connectivity test</h2>
+      <p class="field-hint" style="margin-bottom:14px;">Ops tools like this ping a URL to confirm it's
+      reachable before saving it. No whitelist here — but no response body either.</p>
+      <form method="get" action="/test-webhook">
+        <label for="wurl">Webhook URL</label>
+        <input type="text" id="wurl" name="url" value="{{ webhook_url or '' }}"
+               placeholder="http://127.0.0.1:5001/" autocomplete="off">
+        <button>Ping</button>
+      </form>
+      {% if webhook_result %}
+      <div class="preview">{{ webhook_result }}{% if webhook_ms is not none %} ({{ webhook_ms }}ms){% endif %}</div>
+      {% else %}
+      <div class="preview empty">no ping sent yet</div>
+      {% endif %}
+    </div>
+
+    <div class="card toolkit" style="margin-top:24px;">
+      <h2>Bug bounty toolkit</h2>
+      <p class="field-hint" style="margin-bottom:14px;">Notes for taking this from "I can trigger SSRF
+      in a lab" to "I can find it in a real program."</p>
+
+      <div class="toolkit-row">
+        <b>Parameters worth fuzzing on real targets</b>
+        <p class="dim">Any feature that fetches something server-side tends to hide behind params like:
+        <code>url</code>, <code>uri</code>, <code>path</code>, <code>dest</code>, <code>redirect</code>,
+        <code>continue</code>, <code>next</code>, <code>return</code>, <code>callback</code>,
+        <code>domain</code>, <code>host</code>, <code>site</code>, <code>reference</code>,
+        <code>data</code>, <code>feed</code>, <code>view</code>, <code>page</code>, <code>out</code>,
+        <code>to</code>, <code>val</code>.</p>
+      </div>
+
+      <div class="toolkit-row">
+        <b>Confirming blind SSRF on a real target</b>
+        <p class="dim">Point the suspect parameter at a URL you control on an out-of-band listener —
+        <a href="https://webhook.site" target="_blank" rel="noopener">webhook.site</a>, Burp
+        Collaborator, or Interactsh — and watch for the callback. No callback doesn't always mean
+        "safe": some targets block egress but still resolve DNS, so a DNS-only interaction can still
+        confirm the bug.</p>
+      </div>
+
+      <div class="toolkit-row">
+        <b>Bypass techniques worth trying against a filter</b>
+        <p class="dim">Userinfo (<code>trusted@evil.com</code>), fragment (<code>evil.com#trusted</code>),
+        DNS hierarchy (<code>trusted.evil.com</code>), URL-encoding (<code>%40</code> for
+        <code>@</code>), decimal/octal/hex IP forms for <code>127.0.0.1</code>, and — if the trusted
+        host itself has an open redirect — chaining through that redirect to land anywhere.</p>
+      </div>
+
+      <div class="toolkit-row">
+        <b>What actually makes SSRF worth reporting</b>
+        <p class="dim">Reaching <code>127.0.0.1</code> alone is usually a low/info-severity finding.
+        Severity jumps when it reaches something with real impact behind it: cloud metadata
+        credentials, an internal admin API, or a service with no auth because "only internal callers
+        can reach it." Always show the full chain in your report, not just the initial fetch.</p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

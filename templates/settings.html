@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Settings</h1>
+<p class="lede">Notification and integration settings for this storefront.</p>
+
+<div class="card">
+  <h2>Order notification webhook</h2>
+  <p class="field-hint" style="margin-bottom:14px;">We'll ping this URL whenever a new order comes in.
+  Use "Test connection" to confirm it's reachable before saving. If your endpoint needs an
+  authentication header, you can set that here too.</p>
+  <form method="get" action="/test-webhook">
+    <label for="wurl">Webhook URL</label>
+    <input type="text" id="wurl" name="url" value="{{ webhook_url or '' }}"
+           placeholder="https://hooks.example.com/orders" autocomplete="off">
+    <label for="hname">Header name (optional)</label>
+    <input type="text" id="hname" name="header_name" value="{{ header_name or '' }}"
+           placeholder="X-Auth-Token" autocomplete="off">
+    <label for="hval">Header value (optional)</label>
+    <input type="text" id="hval" name="header_value" value="{{ header_value or '' }}"
+           placeholder="" autocomplete="off">
+    <button>Test connection</button>
+  </form>
+  {% if webhook_result %}
+  <div class="preview">{{ webhook_result }}{% if webhook_ms is not none %} ({{ webhook_ms }}ms){% endif %}</div>
+  {% else %}
+  <div class="preview empty">not tested yet</div>
+  {% endif %}
+</div>
+{% endblock %}
