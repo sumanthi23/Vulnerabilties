@@ -9,7 +9,7 @@ Frontend Server                                    Backend Server
   javascript,images and fonts                        processes payments 
 ex: ngnix,apache,vercel,netify                      ex: node.js,java,php
 
-###What is HTTP request smuggling 
+### What is HTTP request smuggling 
 This occurs when frontend server and backend server disagree about the http request ends and next one begins and this confusion leads to the hide a second request inside the first one 
 
 * This confusion occurs to determine where exactly does the request body ends HTTP/1.1 provides
