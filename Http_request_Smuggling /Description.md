@@ -53,10 +53,12 @@ This occurs when frontend server and backend server disagree about the http requ
       interpret the next request as also data so it must know where exactly does that end
   HTTP/2 --> This is safe from http request smuggling
 There are 2 types of http/2 requests
+
 --> HTTP/2 end to end
 - THis is safe fromm smuggling here browser sends it goes to frontend server and then backend server
   no protocol conversion happens here
   http/2 uses the binary frames which has the id and lengths no chnace of http smuggling
+  
 --> HTTP/2 downgrading
   - here frontend servers support http/2 and then backend support the http/1
   - The frontend recieves the http/2 and then converts into the http/1.1 before forwadind this refered
